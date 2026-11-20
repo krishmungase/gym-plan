@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Society Gym Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: sticky day selector (weight-plate colours) over a single column of exercise cards; figure + steps side by side on wide screens */
+:root{
+  --bg:#eceff2; --surface:#ffffff; --fig:#f5f7f9; --ink:#1c2228; --muted:#5b6670; --line:#d3d9df;
+  --eq:#bcc5ce; --pad:#7d8892; --far:#9aa5b0;
+  --push:#d23f37; --pull:#2a66c9; --legs:#23905a; --rest:#7f8992;
+  --accent:var(--push);
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111417; --surface:#191e23; --fig:#1f252b; --ink:#e7ebee; --muted:#9ba6b0; --line:#2b333b;
+  --eq:#3b454f; --pad:#6c7883; --far:#5d6873;
+  --push:#ee675e; --pull:#5c93f0; --legs:#46bd7b; --rest:#8d97a0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111417; --surface:#191e23; --fig:#1f252b; --ink:#e7ebee; --muted:#9ba6b0; --line:#2b333b;
+  --eq:#3b454f; --pad:#6c7883; --far:#5d6873;
+  --push:#ee675e; --pull:#5c93f0; --legs:#46bd7b; --rest:#8d97a0; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:860px;margin:0 auto}
+header.top{padding-block:22px 6px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(30px,7vw,44px);line-height:1;margin:0;letter-spacing:.01em;text-transform:uppercase;text-wrap:balance}
+.sub{color:var(--muted);margin:8px 0 0}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+nav.days{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px 10px;
+  display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.day{appearance:none;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;
+  padding:7px 2px 6px;cursor:pointer;font-family:var(--display);text-align:center;min-width:0}
+.day{overflow:hidden}
+.day b{display:block;font-size:clamp(13px,3.6vw,17px);font-weight:700;line-height:1.05}
+.day small{display:block;font-size:clamp(8.5px,2.3vw,11px);white-space:nowrap;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-family:var(--body);font-weight:600}
+.day i{display:block;width:16px;height:4px;border-radius:2px;margin:5px auto 0;background:var(--c)}
+.day[aria-selected="true"]{background:var(--c);border-color:var(--c);color:#fff}
+.day[aria-selected="true"] small{color:#fff;opacity:.9}
+.day[aria-selected="true"] i{background:#fff}
+.day:focus-visible,.fig:focus-visible,.set:focus-visible,a:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.today-tag{font-size:9px!important;opacity:1!important}
+
+.dayhead{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:8px 16px;margin:10px 0 12px}
+.dayhead h2{font-family:var(--display);font-size:32px;line-height:1;margin:0;text-transform:uppercase;font-weight:800}
+.dayhead h2 span{color:var(--accent)}
+.dayhead p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.progress{font-family:var(--display);font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.progress small{font-family:var(--body);font-size:12px;color:var(--muted);font-weight:500;margin-left:4px}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-bottom:14px}
+.bar>div{height:100%;background:var(--accent);width:0;transition:width .3s}
+
+.warm{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14px;margin-bottom:14px}
+.warm b{font-family:var(--display);font-size:16px;letter-spacing:.03em;text-transform:uppercase}
+
+.list{display:grid;gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr)}
+@media (max-width:640px){.card{grid-template-columns:minmax(0,1fr)}}
+.fig{background:var(--fig);position:relative;cursor:pointer;border:0;padding:0;display:block;width:100%;color:inherit}
+.fig svg{display:block;width:100%;height:auto;max-width:100%}
+.fig .hint{position:absolute;left:10px;bottom:8px;font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.fig .num{position:absolute;left:10px;top:8px;font-family:var(--display);font-weight:800;font-size:22px;color:var(--accent)}
+.body{padding:14px 16px 16px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.title{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px}
+.title h3{font-family:var(--display);font-size:24px;line-height:1.05;margin:0;font-weight:700;text-transform:uppercase}
+.sr{font-family:var(--display);font-size:20px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+.where{font-size:13px;color:var(--muted);margin-top:-6px}
+ol.steps{margin:0;padding-left:20px;display:grid;gap:3px}
+ol.steps li::marker{font-weight:700;color:var(--accent)}
+.galti{font-size:13.5px;background:color-mix(in srgb,var(--push) 10%,transparent);border-left:3px solid var(--push);padding:6px 10px;border-radius:0 8px 8px 0}
+.galti b{color:var(--push)}
+.note{font-size:13.5px;color:var(--ink);font-weight:600}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;justify-content:space-between;margin-top:2px}
+.sets{display:flex;gap:8px;align-items:center}
+.sets span{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.set{width:38px;height:38px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);
+  font-family:var(--display);font-weight:700;font-size:17px;cursor:pointer;display:grid;place-items:center}
+.set.done{background:var(--accent);border-color:var(--accent);color:#fff}
+a.yt{font-size:14px;font-weight:600;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+a.yt:hover{text-decoration:underline}
+.reset{appearance:none;background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer;margin-top:14px}
+
+.rest{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 18px}
+.rest h3{font-family:var(--display);font-size:26px;margin:0 0 6px;text-transform:uppercase}
+.rules{margin-top:28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.rule{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.rule h4{font-family:var(--display);font-size:19px;text-transform:uppercase;margin:0 0 6px}
+.rule ul{margin:0;padding-left:18px;font-size:14px;display:grid;gap:3px}
+
+/* figure strokes */
+.floor{stroke:var(--line);stroke-width:1.5}
+.limb{stroke:var(--ink);stroke-width:6;stroke-linecap:round;fill:none}
+.torso{stroke:var(--ink);stroke-width:9;stroke-linecap:round}
+.foot{stroke:var(--ink);stroke-width:4.5;stroke-linecap:round}
+.far{stroke:var(--far)}
+.head{fill:var(--ink)}
+.db{fill:var(--accent);stroke:var(--ink);stroke-width:1.5}
+.grip{fill:var(--ink)}
+.cable{stroke:var(--muted);stroke-width:1.3}
+.pulley{fill:var(--surface);stroke:var(--muted);stroke-width:2}
+.eq{fill:var(--eq)}
+.eqs{stroke:var(--eq);stroke-width:5;stroke-linecap:round;fill:none}
+.padl{stroke:var(--pad);stroke-width:8;stroke-linecap:round}
+.padc{fill:var(--pad)}
+.plate{stroke:var(--pad);stroke-width:6;stroke-linecap:round}
+.ghost{opacity:.28}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Society Gym Plan</h1>
+    <p class="sub">Weight aur muscle gain ke liye 6 din ka plan, Ravivar ko chhutti. Din chun, figure dekh, set karte jaa aur tick karta jaa.</p>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--push)"></i>Push: Chest, Shoulder, Tricep</span>
+      <span><i class="dot" style="background:var(--pull)"></i>Pull: Back, Bicep</span>
+      <span><i class="dot" style="background:var(--legs)"></i>Legs + Abs</span>
+    </div>
+  </header>
+
+  <nav class="days" id="days" role="tablist" aria-label="Din chuno"></nav>
+
+  <main id="panel"></main>
+
+  <section class="rules" aria-label="Zaroori baatein">
+    <div class="rule">
+      <h4>Weight kab badhana</h4>
+      <ul>
+        <li>Pehle 2 hafte halka weight, sirf sahi tarika.</li>
+        <li>Saare sets mein upar wale reps (jaise 3 × 12) aaram se ho gaye, to agli baar thoda weight badha.</li>
+        <li>Har set ke last 1-2 reps mushkil lagne chahiye, form kharab nahi.</li>
+      </ul>
+    </div>
+    <div class="rule">
+      <h4>Khaana</h4>
+      <ul>
+        <li>Roz jitna khaata hai usse zyada kha.</li>
+        <li>Har meal mein protein: anda, paneer, dahi, doodh, chicken, dal, soya.</li>
+        <li>Protein: body weight (kg) × 1.6 gram roz.</li>
+        <li>Shake: 400 ml doodh + 2 kele + 2 chammach peanut butter + oats.</li>
+      </ul>
+    </div>
+    <div class="rule">
+      <h4>Aaram</h4>
+      <ul>
+        <li>7-8 ghante neend, roz.</li>
+        <li>Joint mein tez dard ho to wo exercise turant rok.</li>
+        <li>Body bahut thaki ho to ek din chhutti le le.</li>
+        <li>Target: mahine mein 1-2 kg weight badhna.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+const SEG={T:46,UA:23,FA:22,TH:29,SN:29,FT:10,HR:9,NK:4};
+const FLOOR=157;
+const P=(p,a,l)=>{const r=a*Math.PI/180;return[p[0]+Math.cos(r)*l,p[1]+Math.sin(r)*l]};
+const f=n=>n.toFixed(1);
+const L=(a,b,c)=>`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" class="${c}"/>`;
+const C=(p,r,c)=>`<circle cx="${f(p[0])}" cy="${f(p[1])}" r="${r}" class="${c}"/>`;
+const R=(x,y,w,h,c='eq',rx=2)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" class="${c}"/>`;
+const LN=(x1,y1,x2,y2,c='eqs')=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"/>`;
+
+/* ---------- side view figure ---------- */
+function sideJ(ex,q){
+  const hip=[0,0], sh=P(hip,q.t,SEG.T), head=P(sh,q.t+(q.hd||0),SEG.NK+SEG.HR);
+  const el=P(sh,q.ua,SEG.UA*(q.ul??1)), ha=P(el,q.fa,SEG.FA);
+  const kn=P(hip,q.th,SEG.TH), an=P(kn,q.sn,SEG.SN), to=P(an,q.ft||0,SEG.FT);
+  const J={hip,sh,head,el,ha,kn,an,to};
+  if(q.th2!=null){J.kn2=P(hip,q.th2,SEG.TH);J.an2=P(J.kn2,q.sn2,SEG.SN);J.to2=P(J.an2,q.ft2??0,SEG.FT)}
+  const ref=ex.anchor==='toe'?to:hip, d=[ex.at[0]-ref[0],ex.at[1]-ref[1]];
+  for(const k in J){J[k]=[J[k][0]+d[0],J[k][1]+d[1]]}
+  return J;
+}
+function drawSide(ex,q){
+  const J=sideJ(ex,q), x=ex.extras||[]; let s=ex.props||'';
+  if(ex.cable) s+=L(ex.cable,J.ha,'cable')+C(ex.cable,4,'pulley');
+  if(J.kn2) s+=L(J.hip,J.kn2,'limb far')+L(J.kn2,J.an2,'limb far')+L(J.an2,J.to2,'foot far');
+  if(x.includes('pad')) s+=C(J.an,6,'padc');
+  s+=L(J.hip,J.sh,'torso')+C(J.head,SEG.HR,'head');
+  s+=L(J.hip,J.kn,'limb')+L(J.kn,J.an,'limb')+L(J.an,J.to,'foot');
+  if(x.includes('plate')){
+    const vx=J.an[0]-J.hip[0], vy=J.an[1]-J.hip[1], m=Math.hypot(vx,vy), ux=vx/m, uy=vy/m;
+    const c=[J.an[0]+ux*5,J.an[1]+uy*5];
+    s+=L([c[0]-uy*18,c[1]+ux*18],[c[0]+uy*18,c[1]-ux*18],'plate');
+  }
+  s+=L(J.sh,J.el,'limb')+L(J.el,J.ha,'limb');
+  if(ex.hand==='db') s+=C(J.ha,6,'db');
+  else if(ex.hand) s+=C(J.ha,3.6,'grip');
+  return s;
+}
+
+/* ---------- front view figure ---------- */
+function drawFront(ex,q){
+  const cx=110, lift=q.lift||0, sY=q.ty-lift, sw=15, hipY=q.ty+q.tl;
+  let s=ex.props||'';
+  const side=(m)=>{ // m = 1 right, -1 left
+    const hp=[cx+8*m,hipY]; let kn,an,toe;
+    if(ex.seated){kn=[cx+16*m,hipY+5];an=[cx+17*m,FLOOR-2];toe=[cx+23*m,FLOOR]}
+    else{const kb=q.kb||0;kn=[cx+(9+kb)*m,(hipY+FLOOR)/2];an=[cx+10*m,FLOOR-2];toe=[cx+16*m,FLOOR]}
+    return L(hp,kn,'limb')+L(kn,an,'limb')+L(an,toe,'foot');
+  };
+  s+=side(1)+side(-1);
+  s+=L([cx,sY],[cx,hipY],'torso')+L([cx-sw,sY],[cx+sw,sY],'torso')+L([cx-8,hipY],[cx+8,hipY],'torso');
+  s+=C([cx,q.ty+(q.hy??-15)],SEG.HR,'head');
+  for(const m of [1,-1]){
+    const shp=[cx+sw*m,sY], a1=m>0?q.ua:180-q.ua, a2=m>0?q.fa:180-q.fa;
+    const el=P(shp,a1,SEG.UA*(q.ul??1)), ha=P(el,a2,SEG.FA*(q.fl??1));
+    if((ex.extras||[]).includes('armpad')) s+=L(el,P(el,a2,SEG.FA*0.8),'padl');
+    s+=L(shp,el,'limb')+L(el,ha,'limb');
+    if(ex.hand==='db') s+=C(ha,5.5,'db'); else if(ex.hand) s+=C(ha,3.6,'grip');
+  }
+  return s;
+}
+
+function pose(ex,p){
+  const A={...ex.base,...ex.A}, B={...ex.base,...ex.B}, o={};
+  for(const k in A) o[k]=(typeof B[k]==='number'&&typeof A[k]==='number')?A[k]+(B[k]-A[k])*p:A[k];
+  for(const k in B) if(!(k in o)) o[k]=B[k];
+  return o;
+}
+function render(ex,p){
+  const q=pose(ex,p);
+  return (ex.view==='front'?drawFront:drawSide)(ex,q);
+}
+
+/* ---------- equipment drawings ---------- */
+const seatPost=(x,y)=>LN(x,y,x,FLOOR);
+const PROPS={
+  chestPress: R(150,22,10,136)+LN(155,40,150,78)+R(58,128,46,6)+seatPost(80,134)+LN(70,130,66,76,'padl'),
+  incline: LN(126,130,78,97,'padl')+R(108,124,34,6)+LN(124,130,124,FLOOR)+LN(88,108,88,FLOOR),
+  flat: R(56,130,96,6)+LN(68,136,68,FLOOR)+LN(140,136,140,FLOOR),
+  pushdown: R(160,6,10,152),
+  overhead: R(78,128,44,6)+seatPost(100,134)+LN(90,128,90,90,'padl'),
+  pulldown: R(160,6,10,152)+LN(165,6,92,6)+R(70,132,44,6)+seatPost(92,138)+R(108,112,22,6,'eq',3),
+  row: R(48,130,44,6)+seatPost(70,136)+R(133,112,6,40)+LN(190,144,190,FLOOR),
+  legPress: LN(56,126,36,82,'padl')+R(38,122,36,6)+LN(56,128,56,FLOOR)+R(188,30,12,128)+LN(120,150,188,150),
+  legExt: R(56,122,58,7)+LN(70,124,66,72,'padl')+seatPost(86,129)+LN(112,129,112,FLOOR),
+  kneeRaise: LN(86,24,86,FLOOR)+LN(92,40,92,110,'padl')+R(94,72,32,6,'eq',3)+LN(124,78,124,FLOOR),
+  legCurl: R(22,124,118,7)+LN(34,131,34,FLOOR)+LN(128,131,128,FLOOR),
+  crunch: LN(58,133,150,110,'padl')+LN(74,130,74,FLOOR)+LN(146,112,146,FLOOR)+LN(166,124,186,FLOOR)+`<circle cx="176" cy="121" r="5" class="padc"/>`,
+  benchUp: R(84,122,52,8)+R(98,62,24,62,'eq',4)+LN(90,130,90,FLOOR)+LN(130,130,130,FLOOR),
+  benchEdge: R(70,128,80,7)+LN(80,135,80,FLOOR)+LN(140,135,140,FLOOR),
+  pec: R(84,122,52,8)+R(98,58,24,66,'eq',4)+LN(110,130,110,FLOOR),
+};
+
+/* ---------- exercises ---------- */
+const STAND={t:-90,ua:92,fa:90,th:91,sn:90};
+const EX={
+ chestPress:{name:'Machine Chest Press',where:'Multi-gym station',yt:'machine chest press',
+   view:'side',anchor:'hip',at:[80,126],props:PROPS.chestPress,hand:'handle',
+   base:{t:-95,ua:0,fa:-5,th:-5,sn:95},A:{ul:-0.7},B:{ul:1},
+   steps:['Seat itni set kar ki handles chest ke beech ki line pe aayein.','Peeth pad se chipki rahe, chest thodi bahar.','Handles aage dhakel. Haath poore lock mat kar.','2 second mein dheere wapas la.'],
+   galti:'Kandhe kaan ki taraf mat utha, jhatke se mat dhakel.'},
+ inclinePress:{name:'Incline Dumbbell Press',where:'Adjustable bench, back 30-45° pe',yt:'incline dumbbell press',
+   view:'side',anchor:'hip',at:[120,120],props:PROPS.incline,hand:'db',
+   base:{t:-145,ua:-55,fa:-55,th:15,sn:95},A:{ul:-0.5},B:{ul:1},
+   steps:['Bench ka back 30-45° pe set kar aur let ja.','Dumbbell chest ke side mein, kohni thodi neeche.','Upar dhakel, upar dono dumbbell paas aa jaayein.','Dheere neeche la jab tak chest mein stretch lage.'],
+   galti:'Kamar bench se mat utha, dumbbell aapas mein mat takra.'},
+ dbShoulder:{name:'Dumbbell Shoulder Press',where:'Bench seedha (90°) kar ke',yt:'seated dumbbell shoulder press',
+   view:'front',seated:true,props:PROPS.benchUp,hand:'db',
+   base:{ty:82,tl:40,fa:-90},A:{ua:0},B:{ua:-65,fa:-86},
+   steps:['Bench seedha kar ke baith, peeth back pad se lagi.','Dumbbell kaan ke paas, kohni neeche.','Seedha upar dhakel.','Dheere wapas kaan tak la.'],
+   galti:'Kamar peeche mod ke mat dhakel.'},
+ lateral:{name:'Lateral Raise',where:'Halke dumbbell (2.5-5 kg)',yt:'dumbbell lateral raise',
+   view:'front',hand:'db',base:{ty:68,tl:44},A:{ua:93,fa:92},B:{ua:2,fa:-2},
+   steps:['Seedha khada ho, dumbbell side mein.','Kohni thodi mudi rakh.','Haath side se kandhe ki height tak utha.','1 second ruk, dheere neeche la.'],
+   galti:'Jhool ke mat utha, kandhe se upar mat le ja.'},
+ pushdown:{name:'Tricep Pushdown',where:'Multi-gym, upar wala cable',yt:'tricep cable pushdown',
+   view:'side',anchor:'toe',at:[112,FLOOR],props:PROPS.pushdown,cable:[150,10],hand:'handle',
+   base:{...STAND,t:-82,ua:95},A:{fa:-40},B:{fa:88},
+   steps:['Cable ke saamne khada ho, bar ya rassi pakad.','Kohni body ke side mein chipka le. Ye hilni nahi chahiye.','Sirf forearm neeche dhakel, haath seedhe kar.','Dheere upar chest tak wapas la.'],
+   galti:'Kohni aage-peeche mat hila, body ka weight mat laga.'},
+ flatPress:{name:'Flat Dumbbell Press',where:'Bench flat kar ke',yt:'flat dumbbell bench press',
+   view:'side',anchor:'hip',at:[135,124],props:PROPS.flat,hand:'db',
+   base:{t:180,ua:-90,fa:-90,th:5,sn:93},A:{ul:-0.35},B:{ul:1},
+   steps:['Bench flat kar, dumbbell jaangh pe rakh ke let ja.','Dumbbell chest ke side mein la, pair zameen pe.','Upar seedha dhakel.','Dheere neeche la, chest mein stretch tak.'],
+   galti:'Dumbbell bahut neeche mat gira, kandhe pe zor aata hai.'},
+ pecDeck:{name:'Butterfly / Pec Deck',where:'Multi-gym station',yt:'pec deck machine fly',
+   view:'front',seated:true,props:PROPS.pec,hand:'handle',extras:['armpad'],
+   base:{ty:80,tl:42,ua:0,fa:-90},A:{ul:1},B:{ul:0.18},
+   steps:['Seat set kar ki kohni wale pads kandhe ki height pe hon.','Kohni aur forearm pads pe rakh.','Dono pads chest ke saamne mila, 1 second chest daba.','Dheere wapas khul jaane de.'],
+   galti:'Weight zyada mat rakh, pad jhatke se mat chhod.'},
+ arnold:{name:'Arnold Press',where:'Bench seedha (90°) kar ke',yt:'arnold press',
+   view:'front',seated:true,props:PROPS.benchUp,hand:'db',
+   base:{ty:82,tl:40,fa:-90},A:{ua:90,ul:0.45},B:{ua:-65,ul:1,fa:-86},
+   steps:['Baith ja, dumbbell chehre ke saamne, hatheli apni taraf.','Upar dhakelte waqt haath ghuma.','Upar pahunch ke hatheli aage ki taraf ho.','Wapas usi tarah ghumate hue neeche la.'],
+   galti:'Jaldi mat kar, ghumana dheere aur control mein.'},
+ overheadExt:{name:'Overhead Tricep Extension',where:'Bench + ek dumbbell',yt:'seated overhead dumbbell tricep extension',
+   view:'side',anchor:'hip',at:[100,126],props:PROPS.overhead,hand:'db',
+   base:{t:-92,ua:-80,th:-3,sn:95},A:{fa:115},B:{fa:272},
+   steps:['Baith ja, ek dumbbell dono haathon se sir ke upar.','Kohni upar ki taraf, kaan ke paas.','Dumbbell sir ke peeche dheere neeche le ja.','Haath seedhe kar ke wapas upar.'],
+   galti:'Kohni bahar mat failne de.'},
+ latPulldown:{name:'Lat Pulldown',where:'Multi-gym, upar wala lamba bar',yt:'lat pulldown',
+   view:'side',anchor:'hip',at:[92,130],props:PROPS.pulldown,cable:[92,6],hand:'bar',
+   base:{t:-100,ua:-85,th:-10,sn:95},A:{ul:1,fa:-82},B:{ul:-0.95,fa:-75},
+   steps:['Bar kandhe se thoda chauda pakad, jaangh pad ke neeche fasa.','Thoda sa peeche jhuk.','Bar chest ke upar wale hisse tak kheench. Kohni neeche jeb ki taraf.','Dheere upar jaane de.'],
+   galti:'Bar gardan ke peeche mat la, jhatke se mat kheench.'},
+ closePulldown:{name:'Close Grip Pulldown',where:'Multi-gym, V-handle ya bar beech se',yt:'close grip lat pulldown',
+   view:'side',anchor:'hip',at:[92,130],props:PROPS.pulldown,cable:[92,6],hand:'bar',
+   base:{t:-100,th:-10,sn:95},A:{ua:-80,fa:-85},B:{ua:110,fa:-70},
+   steps:['V-handle laga, ya bar ko beech mein haath paas paas rakh ke pakad.','Thoda sa peeche jhuk, chest upar.','Handle chest tak kheench, kohni body ke paas neeche aaye.','Dheere upar jaane de.'],
+   galti:'Body peeche jhool ke mat kheench.'},
+ cableRow:{name:'Seated Cable Row',where:'Multi-gym, neeche wala cable (chain wala)',yt:'seated cable row',
+   view:'side',anchor:'hip',at:[70,128],props:PROPS.row,cable:[190,144],hand:'handle',
+   base:{ua:5,th:-8,sn:15},A:{t:-76,ul:1,fa:3},B:{t:-95,ul:-1,fa:5},
+   steps:['Baith ja, pair plate pe, ghutne thode mude.','Handle pakad, peeth seedhi.','Handle pet ki taraf kheench, shoulder blades peeche daba.','Dheere aage jaane de, peeth gol mat kar.'],
+   galti:'Aage-peeche jhool ke weight mat kheench.'},
+ dbRow:{name:'One-Arm Dumbbell Row',where:'Bench + dumbbell',yt:'one arm dumbbell row',
+   view:'side',anchor:'toe',at:[108,FLOOR],hand:'db',
+   base:{t:-15,fa:90,th:95,sn:85},A:{ua:90},B:{ua:210},
+   steps:['Ek ghutna aur ek haath bench pe, peeth seedhi.','Doosre haath mein dumbbell latka.','Dumbbell pet ki side tak kheench, kohni body ke paas.','Dheere neeche. Ek side poori kar, phir doosri.'],
+   galti:'Body ghuma ke mat kheench, peeth gol mat kar.'},
+ shrug:{name:'Dumbbell Shrugs',where:'Dumbbell (thoda bhaari chalega)',yt:'dumbbell shrugs',
+   view:'front',hand:'db',base:{ty:68,tl:44,ua:92,fa:90},A:{lift:0},B:{lift:8},
+   steps:['Dono haath mein dumbbell, seedha khada ho.','Haath seedhe, kohni mat mod.','Kandhe kaan ki taraf upar utha, 1 second ruk.','Dheere neeche la.'],
+   galti:'Kandhe gol gol mat ghuma, bas seedha upar-neeche.'},
+ curl:{name:'Dumbbell Bicep Curl',where:'Dumbbell',yt:'dumbbell bicep curl',
+   view:'side',anchor:'toe',at:[112,FLOOR],hand:'db',
+   base:{...STAND},A:{ua:92,fa:90},B:{ua:96,fa:-75},
+   steps:['Seedha khada ho, hatheli aage ki taraf.','Kohni body se chipki rahe.','Sirf forearm upar la, upar bicep daba.','Dheere neeche la.'],
+   galti:'Body jhula ke weight mat utha.'},
+ hammer:{name:'Hammer Curl',where:'Dumbbell',yt:'hammer curl',
+   view:'side',anchor:'toe',at:[112,FLOOR],hand:'db',
+   base:{...STAND},A:{ua:92,fa:90},B:{ua:96,fa:-75},
+   steps:['Seedha khada ho, hatheliyan ek doosre ki taraf (hathoda pakadne jaisa).','Kohni body se chipki rahe.','Dumbbell kandhe ki taraf upar la.','Dheere neeche la.'],
+   galti:'Jhool mat, kohni aage mat la.'},
+ rearDelt:{name:'Rear Delt Fly',where:'Halke dumbbell, jhuk ke',yt:'bent over rear delt fly dumbbell',
+   view:'front',hand:'db',base:{ty:94,tl:14,hy:-7,kb:6},A:{ua:90,fa:90},B:{ua:6,fa:6},
+   steps:['Aage jhuk ja, peeth seedhi, chest jaangh ke paas.','Halke dumbbell neeche latka.','Kohni thodi mudi rakh ke haath side se kandhe tak utha.','Dheere neeche la.'],
+   galti:'Bhaari weight mat le, ye chhoti muscle hai.'},
+ legPress:{name:'Leg Press',where:'Leg press machine (Viva Fitness wali)',yt:'seated leg press machine',
+   view:'side',anchor:'hip',at:[62,118],props:PROPS.legPress,extras:['plate'],hand:'handle',
+   base:{t:-115,ua:100,fa:10,ft:-80},A:{th:-65,sn:30},B:{th:-12,sn:-10},
+   steps:['Seat pe baith, peeth back pad se chipki.','Pair plate pe kandhe jitni chaudai mein.','Dhakka de ke pair seedhe kar. Ghutne lock mat kar.','Dheere wapas, ghutne lagbhag 90° tak.'],
+   galti:'Kamar seat se uthni nahi chahiye.'},
+ rdl:{name:'Dumbbell Romanian Deadlift',where:'Dumbbell',yt:'dumbbell romanian deadlift',
+   view:'side',anchor:'toe',at:[120,FLOOR],hand:'db',
+   base:{ua:92,fa:92},A:{t:-90,th:91,sn:90},B:{t:-25,ua:100,fa:100,th:55,sn:95},
+   steps:['Seedha khada ho, dumbbell jaangh ke saamne.','Ghutne thode mode, kamar peeche dhakel.','Dumbbell pair ke saath neeche, peeth bilkul seedhi.','Hamstring mein khinchaav pe ruk, phir khada ho ja.'],
+   galti:'Kamar gol mat kar. Halke weight se shuru kar.'},
+ legExt:{name:'Leg Extension',where:'Multi-gym, seat ke neeche wala pad',yt:'leg extension machine',
+   view:'side',anchor:'hip',at:[80,120],props:PROPS.legExt,extras:['pad'],hand:'handle',
+   base:{t:-95,ua:95,fa:60,th:-2},A:{sn:92},B:{sn:2},
+   steps:['Baith, pair pad ke peeche fasa.','Seat ke handles pakad.','Pair seedhe upar utha, 1 second ruk.','Dheere neeche la.'],
+   galti:'Jhatke se mat utha, ghutne pe zor aata hai.'},
+ calf:{name:'Calf Raise',where:'Dumbbell (step ya plate pe khade ho ke aur achha)',yt:'dumbbell standing calf raise',
+   view:'side',anchor:'toe',at:[118,FLOOR],hand:'db',
+   base:{...STAND},A:{ft:0},B:{ft:42},
+   steps:['Dumbbell pakad ke seedha khada ho.','Panjon pe upar utha, edi upar.','Upar 1 second ruk.','Dheere neeche, edi neeche tak.'],
+   galti:'Jaldi jaldi uchhal mat, dheere kar.'},
+ kneeRaise:{name:'Knee Raise',where:'Dip / knee raise station (multi-gym ke saath)',yt:'captains chair knee raise',
+   view:'side',anchor:'hip',at:[100,94],props:PROPS.kneeRaise,hand:'handle',
+   base:{t:-90,ua:90,fa:0},A:{th:92,sn:90},B:{th:-5,sn:85},
+   steps:['Kohni pads pe, handles pakad, peeth pad se lagi.','Pair neeche latkne de.','Ghutne mod ke chest ki taraf upar la.','Dheere neeche, jhoolna nahi.'],
+   galti:'Pair jhula ke mat utha, pet se utha.'},
+ goblet:{name:'Goblet Squat',where:'Ek dumbbell',yt:'goblet squat',
+   view:'side',anchor:'toe',at:[118,FLOOR],hand:'db',
+   base:{},A:{t:-88,ua:85,fa:-80,th:91,sn:90},B:{t:-58,ua:115,fa:-50,th:5,sn:115},
+   steps:['Dumbbell chest ke saamne khada pakad.','Pair kandhe se thode chaude, panje thode bahar.','Kursi pe baithne jaisa neeche ja, seena upar.','Edi se dhakka de ke upar aa.'],
+   galti:'Ghutne andar ki taraf mat aane de, edi mat utha.'},
+ lunge:{name:'Dumbbell Lunges',where:'Dumbbell',yt:'dumbbell lunges',
+   view:'side',anchor:'toe',at:[130,FLOOR],hand:'db',
+   base:{t:-90,ua:92,fa:90},A:{th:91,sn:90,th2:89,sn2:90},B:{th:8,sn:90,th2:115,sn2:175},
+   steps:['Dono haath mein dumbbell, seedha khada ho.','Ek bada kadam aage rakh.','Neeche ja jab tak dono ghutne lagbhag 90° hon.','Aage wale pair ki edi se dhakka de ke wapas. Phir doosra pair.'],
+   galti:'Aage wala ghutna andar mat mudne de.'},
+ legCurl:{name:'Leg Curl',where:'Multi-gym (agar ye attachment hai)',yt:'lying leg curl machine',
+   view:'side',anchor:'hip',at:[100,117],props:PROPS.legCurl,extras:['pad'],hand:'handle',
+   base:{t:180,ua:150,fa:100,th:0},A:{sn:0},B:{sn:-115},
+   steps:['Pet ke bal let ja, pad ankle ke peeche.','Bench ke handles pakad.','Edi hips ki taraf mod ke upar la.','Dheere neeche la.'],
+   galti:'Hips bench se mat utha.'},
+ crunch:{name:'Crunches',where:'Decline / ab bench',yt:'decline bench crunches',
+   view:'side',anchor:'hip',at:[128,106],props:PROPS.crunch,
+   base:{th:-30,sn:40},A:{t:166,ua:-40,fa:175},B:{t:210,ua:5,fa:210},
+   steps:['Pair pad mein fasa, haath chest pe cross.','Sirf kandhe aur upar ki peeth utha.','Upar pet daba, 1 second.','Dheere wapas, poora mat let.'],
+   galti:'Gardan haath se mat kheench.'},
+};
+
+const W='5-7 minute cycle ya elliptical, phir pehli exercise ka ek halka set. Do sets ke beech 1.5-2 minute aaram.';
+const DAYS=[
+ {key:'som',short:'Som',full:'Somvar',type:'push',label:'Push 1',items:[['chestPress','3 × 10-12'],['inclinePress','3 × 10-12'],['dbShoulder','3 × 10-12'],['lateral','3 × 12-15'],['pushdown','3 × 12']]},
+ {key:'mangal',short:'Mangal',full:'Mangalvar',type:'pull',label:'Pull 1',items:[['latPulldown','3 × 10-12'],['cableRow','3 × 10-12'],['dbRow','3 × 10 har haath'],['shrug','3 × 12-15'],['curl','3 × 12']]},
+ {key:'budh',short:'Budh',full:'Budhvar',type:'legs',label:'Legs 1',items:[['legPress','3 × 10-12'],['rdl','3 × 10-12'],['legExt','3 × 12-15'],['calf','3 × 15'],['kneeRaise','3 × 10-15']]},
+ {key:'guru',short:'Guru',full:'Guruvar',type:'push',label:'Push 2',items:[['flatPress','3 × 10-12'],['pecDeck','3 × 12'],['arnold','3 × 10-12'],['lateral','3 × 12-15'],['overheadExt','3 × 12']]},
+ {key:'shukra',short:'Shukra',full:'Shukravar',type:'pull',label:'Pull 2',items:[['closePulldown','3 × 10-12'],['dbRow','3 × 10 har haath'],['cableRow','3 × 12'],['rearDelt','3 × 12-15'],['hammer','3 × 12']]},
+ {key:'shani',short:'Shani',full:'Shanivar',type:'legs',label:'Legs 2',items:[['goblet','3 × 10-12'],['lunge','3 × 10 har pair'],['legPress','3 × 12','Is din pair plate pe thode upar rakh, hips aur hamstring pe zyada kaam aayega.'],['legCurl','3 × 12','Agar ye machine nahi hai to iski jagah Romanian Deadlift ke 3 set kar.'],['crunch','3 × 15']]},
+ {key:'ravi',short:'Ravi',full:'Ravivar',type:'rest',label:'Rest',items:[]},
+];
+const TYPEVAR={push:'--push',pull:'--pull',legs:'--legs',rest:'--rest'};
+const MUSCLE={push:'Chest, Shoulder, Tricep',pull:'Back, Bicep',legs:'Pair + Abs',rest:'Chhutti'};
+
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const todayIdx=(new Date().getDay()+6)%7;
+const dateKey=(()=>{const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()})();
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+const nav=document.getElementById('days'), panel=document.getElementById('panel');
+let current=todayIdx, figs=[];
+
+DAYS.forEach((d,i)=>{
+  const b=document.createElement('button');
+  b.className='day';b.id='tab-'+d.key;b.setAttribute('role','tab');
+  b.style.setProperty('--c',`var(${TYPEVAR[d.type]})`);
+  b.innerHTML=`<b>${d.short}</b><small>${i===todayIdx?'<span class="today-tag">Aaj</span>':d.label}</small><i></i>`;
+  b.addEventListener('click',()=>show(i));
+  nav.appendChild(b);
+});
+
+function setsKey(d){return 'gymplan:'+dateKey+':'+d.key}
+function show(i){
+  current=i;
+  [...nav.children].forEach((b,j)=>b.setAttribute('aria-selected',j===i?'true':'false'));
+  const d=DAYS[i];
+  panel.style.setProperty('--accent',`var(${TYPEVAR[d.type]})`);
+  document.documentElement.style.setProperty('--accent',`var(${TYPEVAR[d.type]})`);
+  figs=[];
+  if(d.type==='rest'){
+    panel.innerHTML=`<div class="dayhead"><div><h2>${d.full} · <span>Rest</span></h2><p>Poore hafte ki mehnat ke baad muscle aaj banegi.</p></div></div>
+    <div class="rest"><h3>Aaj chhutti</h3><p>Achha kha, 7-8 ghante so. Chahe to 20-30 minute halki walk kar le. Kal Somvar ko phir se Push 1 se shuru.</p></div>`;
+    return;
+  }
+  const done=store.get(setsKey(d))||{};
+  let html=`<div class="dayhead"><div><h2>${d.full} · <span>${d.label}</span></h2><p>${MUSCLE[d.type]}</p></div>
+    <div class="progress" id="prog"></div></div><div class="bar"><div id="progbar"></div></div>
+    <div class="warm"><b>Pehle warm-up:</b> ${W}</div><div class="list">`;
+  d.items.forEach(([id,sr,note],n)=>{
+    const ex=EX[id], yt='https://www.youtube.com/results?search_query='+encodeURIComponent(ex.yt+' proper form');
+    const ds=done[n]||[];
+    html+=`<article class="card">
+      <button class="fig" type="button" data-fig="${n}" aria-label="${ex.name} ka figure. Rokne ya chalane ke liye dabao.">
+        <span class="num">${n+1}</span>
+        <svg viewBox="0 0 220 165" role="img" aria-hidden="true"><line x1="8" y1="${FLOOR+2}" x2="212" y2="${FLOOR+2}" class="floor"/><g class="ghostg"></g><g class="live"></g></svg>
+        <span class="hint">${reduce?'Halka = start, gaadha = end':'Dabao to ruk jayega'}</span>
+      </button>
+      <div class="body">
+        <div class="title"><h3>${ex.name}</h3><span class="sr">${sr}</span></div>
+        <div class="where">${ex.where}</div>
+        ${note?`<div class="note">${note}</div>`:''}
+        <ol class="steps">${ex.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+        <div class="galti"><b>Galti mat kar:</b> ${ex.galti}</div>
+        <div class="actions">
+          <div class="sets"><span>Sets</span>${[0,1,2].map(k=>`<button type="button" class="set${ds[k]?' done':''}" data-ex="${n}" data-set="${k}" aria-pressed="${ds[k]?'true':'false'}" aria-label="Set ${k+1}">${ds[k]?'✓':k+1}</button>`).join('')}</div>
+          <a class="yt" href="${yt}" target="_blank" rel="noopener">▶ YouTube pe video dekh</a>
+        </div>
+      </div></article>`;
+  });
+  html+=`</div><button type="button" class="reset" id="reset">Aaj ke ticks hatao</button>`;
+  panel.innerHTML=html;
+  panel.querySelectorAll('.fig').forEach(btn=>{
+    const n=+btn.dataset.fig, ex=EX[d.items[n][0]];
+    const o={ex,live:btn.querySelector('.live'),ghost:btn.querySelector('.ghostg'),paused:false,visible:true,el:btn};
+    if(reduce){o.ghost.innerHTML=`<g class="ghost">${render(ex,0)}</g>`;o.live.innerHTML=render(ex,1)}
+    else o.live.innerHTML=render(ex,0.5);
+    btn.addEventListener('click',()=>{o.paused=!o.paused;btn.querySelector('.hint').textContent=o.paused?'Ruka hua. Dabao to chalega':'Dabao to ruk jayega'});
+    figs.push(o);
+    if(io) io.observe(btn);
+  });
+  panel.querySelectorAll('.set').forEach(b=>b.addEventListener('click',()=>{
+    const st=store.get(setsKey(d))||{}, e=b.dataset.ex, k=+b.dataset.set;
+    st[e]=st[e]||[]; st[e][k]=!st[e][k]; store.set(setsKey(d),st);
+    b.classList.toggle('done',!!st[e][k]); b.textContent=st[e][k]?'✓':k+1; b.setAttribute('aria-pressed',st[e][k]?'true':'false');
+    updateProg(d);
+  }));
+  document.getElementById('reset').addEventListener('click',()=>{store.set(setsKey(d),{});show(i)});
+  updateProg(d);
+}
+function updateProg(d){
+  const st=store.get(setsKey(d))||{}; let c=0; const total=d.items.length*3;
+  panel.querySelectorAll('.set.done').forEach(()=>c++);
+  document.getElementById('prog').innerHTML=`${c}/${total}<small>sets</small>`;
+  document.getElementById('progbar').style.width=(c/total*100)+'%';
+}
+
+const io='IntersectionObserver' in window?new IntersectionObserver(es=>{es.forEach(e=>{const o=figs.find(x=>x.el===e.target);if(o)o.visible=e.isIntersecting})}):null;
+
+if(!reduce){
+  const PERIOD=3200;
+  const tick=t=>{
+    const p=(1-Math.cos(2*Math.PI*t/PERIOD))/2;
+    for(const o of figs){ if(o.visible&&!o.paused) o.live.innerHTML=render(o.ex,p); }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+show(current);
+})();
+</script>
+</body>
+</html>
