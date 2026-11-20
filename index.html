@@ -34,6 +34,9 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15p
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 .wrap{max-width:860px;margin:0 auto}
 header.top{padding-block:22px 6px}
+.switch{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:var(--surface);border:1px solid var(--line);margin-bottom:14px}
+.switch a{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.04em;text-transform:uppercase;text-decoration:none;color:var(--muted);padding:5px 16px;border-radius:999px}
+.switch a[aria-current="page"]{background:var(--ink);color:var(--bg)}
 h1{font-family:var(--display);font-weight:800;font-size:clamp(30px,7vw,44px);line-height:1;margin:0;letter-spacing:.01em;text-transform:uppercase;text-wrap:balance}
 .sub{color:var(--muted);margin:8px 0 0}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:13px;color:var(--muted)}
@@ -123,6 +126,7 @@ a.yt:hover{text-decoration:underline}
 <body>
 <div class="wrap">
   <header class="top">
+    <nav class="switch" aria-label="Page"><a href="index.html" aria-current="page">Workout</a><a href="diet.html">Diet</a></nav>
     <h1>Society Gym Plan</h1>
     <p class="sub">Weight aur muscle gain ke liye 6 din ka plan, Ravivar ko chhutti. Din chun, figure dekh, set karte jaa aur tick karta jaa.</p>
     <div class="legend">

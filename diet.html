@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Society Gym Diet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: same system as the workout page; target calculator on top, diet-type tabs, then a time-ordered meal timeline */
+:root{
+  --bg:#eceff2; --surface:#ffffff; --soft:#f5f7f9; --ink:#1c2228; --muted:#5b6670; --line:#d3d9df;
+  --accent:#b8700c; --good:#23905a; --warn:#c2410c;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111417; --surface:#191e23; --soft:#1f252b; --ink:#e7ebee; --muted:#9ba6b0; --line:#2b333b;
+  --accent:#e6a23c; --good:#46bd7b; --warn:#f08a5d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111417; --surface:#191e23; --soft:#1f252b; --ink:#e7ebee; --muted:#9ba6b0; --line:#2b333b;
+  --accent:#e6a23c; --good:#46bd7b; --warn:#f08a5d; color-scheme:dark}
+*{box-sizing:border-box}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:860px;margin:0 auto}
+header.top{padding-block:22px 6px}
+.switch{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:var(--surface);border:1px solid var(--line);margin-bottom:14px}
+.switch a{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.04em;text-transform:uppercase;text-decoration:none;color:var(--muted);padding:5px 16px;border-radius:999px}
+.switch a[aria-current="page"]{background:var(--ink);color:var(--bg)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(30px,7vw,44px);line-height:1;margin:0;text-transform:uppercase;text-wrap:balance}
+.sub{color:var(--muted);margin:8px 0 0}
+h2{font-family:var(--display);font-size:26px;line-height:1.05;margin:0 0 10px;text-transform:uppercase;font-weight:800}
+section{margin-top:22px}
+
+.calc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:14px}
+.fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+label{display:grid;gap:4px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--soft);border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;width:100%;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.targets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.t{background:var(--soft);border-radius:12px;padding:10px 12px;min-width:0}
+.t small{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.t b{display:block;font-family:var(--display);font-size:clamp(24px,6vw,32px);line-height:1.1;font-variant-numeric:tabular-nums;color:var(--accent)}
+.t span{font-size:12px;color:var(--muted)}
+.fine{font-size:12.5px;color:var(--muted);margin:0}
+
+.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:12px}
+.tab{appearance:none;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:9px 4px;cursor:pointer;
+  font-family:var(--display);font-weight:700;font-size:17px;text-transform:uppercase;letter-spacing:.03em}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.summary{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:10px;margin-bottom:12px}
+.meter{display:grid;gap:4px}
+.meter .row{display:flex;justify-content:space-between;gap:10px;font-size:14px;font-variant-numeric:tabular-nums}
+.meter .row b{font-family:var(--display);font-size:19px}
+.track{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.track>div{height:100%;border-radius:4px;background:var(--accent);max-width:100%}
+.verdict{font-size:14px;padding:8px 10px;border-radius:8px;background:var(--soft)}
+.verdict b.ok{color:var(--good)} .verdict b.low{color:var(--warn)}
+
+.timeline{display:grid;gap:10px}
+.meal{background:var(--surface);border:1px solid var(--line);border-radius:14px;display:grid;grid-template-columns:86px minmax(0,1fr)}
+@media (max-width:480px){.meal{grid-template-columns:minmax(0,1fr)}}
+.when{padding:14px 0 14px 16px;font-family:var(--display);font-weight:700;font-size:18px;color:var(--accent);line-height:1.1;font-variant-numeric:tabular-nums}
+.when small{display:block;font-family:var(--body);font-size:11px;color:var(--muted);font-weight:600;margin-top:3px}
+@media (max-width:480px){.when{padding:12px 16px 0;display:flex;gap:8px;align-items:baseline}.when small{margin:0}}
+.mbody{padding:12px 16px 14px;min-width:0}
+.mhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 12px;margin-bottom:6px}
+.mhead h3{font-family:var(--display);font-size:21px;margin:0;text-transform:uppercase;font-weight:700}
+.mhead span{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mhead span b{color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td{padding:5px 0;border-top:1px solid var(--line);vertical-align:top}
+td.n{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:10px;font-size:13px}
+td .q{color:var(--muted);font-size:13px}
+.tip{font-size:13px;color:var(--muted);margin-top:6px}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13.5px}
+.chip b{font-variant-numeric:tabular-nums}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:12px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.box h4{font-family:var(--display);font-size:19px;text-transform:uppercase;margin:0 0 6px}
+.box ul{margin:0;padding-left:18px;font-size:14px;display:grid;gap:3px}
+
+.log{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:10px}
+.logform{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:8px;align-items:end}
+@media (max-width:420px){.logform{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.logform button{grid-column:1/-1}}
+.btn{appearance:none;border:0;background:var(--accent);color:#fff;font-family:var(--display);font-weight:700;font-size:17px;text-transform:uppercase;border-radius:10px;padding:10px 16px;cursor:pointer}
+.loglist{display:grid;gap:0;font-variant-numeric:tabular-nums}
+.loglist div{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}
+.up{color:var(--good);font-weight:600} .down{color:var(--warn);font-weight:600}
+.x{appearance:none;background:none;border:0;color:var(--muted);cursor:pointer;font-size:13px;padding:0 0 0 8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <nav class="switch" aria-label="Page"><a href="index.html">Workout</a><a href="diet.html" aria-current="page">Diet</a></nav>
+    <h1>Diet Plan</h1>
+    <p class="sub">Weight aur muscle gain ke liye ghar ka Indian khana. Apna weight daal, target nikal, aur din bhar ka plan follow kar.</p>
+  </header>
+
+  <section aria-labelledby="h-target">
+    <h2 id="h-target">Tera roz ka target</h2>
+    <div class="calc">
+      <div class="fields">
+        <label for="wt">Weight (kg)<input id="wt" type="number" inputmode="decimal" min="30" max="150" value="60"></label>
+        <label for="ht">Height (cm)<input id="ht" type="number" inputmode="numeric" min="120" max="220" value="170"></label>
+        <label for="age">Umar (saal)<input id="age" type="number" inputmode="numeric" min="14" max="70" value="22"></label>
+        <label for="sex">Kaun<select id="sex"><option value="m">Ladka</option><option value="f">Ladki</option></select></label>
+      </div>
+      <div class="targets">
+        <div class="t"><small>Calories</small><b id="tKcal">–</b><span>kcal roz</span></div>
+        <div class="t"><small>Protein</small><b id="tPro">–</b><span>gram roz</span></div>
+        <div class="t"><small>Paani</small><b id="tWater">–</b><span>litre roz</span></div>
+      </div>
+      <p class="fine">Ye andaza hai: hafte mein 6 din gym + roz ka normal kaam, aur upar se lagbhag 400 kcal extra, taaki weight badhe. 2 hafte follow kar. Agar weight nahi badha to roz 200-300 kcal aur badha de.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-plan">
+    <h2 id="h-plan">Din bhar ka khana</h2>
+    <div class="tabs" role="tablist" aria-label="Khana kaisa">
+      <button class="tab" role="tab" id="tab-veg" data-type="veg">Veg</button>
+      <button class="tab" role="tab" id="tab-egg" data-type="egg">Veg + Anda</button>
+      <button class="tab" role="tab" id="tab-nonveg" data-type="nonveg">Non-veg</button>
+    </div>
+    <div class="summary" id="summary"></div>
+    <div class="timeline" id="timeline"></div>
+    <p class="fine" style="margin-top:10px">Gym shaam ko maan ke time likha hai. Subah gym jaata hai to "Gym se pehle" wala snack gym se 1 ghanta pehle aur shake gym ke baad le. Calories aur protein lagbhag hain, ghar ke khaane mein thoda upar-neeche hota hai.</p>
+  </section>
+
+  <section aria-labelledby="h-add">
+    <h2 id="h-add">Calories badhani hain to ye jod</h2>
+    <div class="chips" id="addons"></div>
+  </section>
+
+  <section aria-labelledby="h-rules">
+    <h2 id="h-rules">Zaroori baatein</h2>
+    <div class="grid2">
+      <div class="box"><h4>Kya kha</h4><ul>
+        <li>Har meal mein protein: dal, paneer, dahi, doodh, anda, chicken, soya, chana.</li>
+        <li>Roti, rice, poha, oats: ye energy dete hain, kam mat kar.</li>
+        <li>Mungfali, badam, peanut butter, ghee: kam jagah mein zyada calories.</li>
+        <li>Roz 2 fruit (kela sabse sasta aur best).</li>
+      </ul></div>
+      <div class="box"><h4>Kya kam kar</h4><ul>
+        <li>Cold drink, packet wale chips, biscuit: calories hain par kaam ki nahi.</li>
+        <li>Roz bahar ka tala hua khaana.</li>
+        <li>Meal skip karna. Bhookh na ho tab bhi shake pi le.</li>
+        <li>Raat ko der tak jaagna. Muscle neend mein banti hai.</li>
+      </ul></div>
+      <div class="box"><h4>Budget tips</h4><ul>
+        <li>Soya chunks: 50 g mein 26 g protein, sabse sasta protein.</li>
+        <li>Bhuna chana + mungfali: sasta aur achha snack.</li>
+        <li>Whey protein zaroori nahi. Khaane se protein pura ho raha hai to theek hai.</li>
+        <li>Paneer mehnga lage to ghar pe doodh phaad ke bana le.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-log">
+    <h2 id="h-log">Weight diary</h2>
+    <div class="log">
+      <p class="fine" style="font-size:14px">Hafte mein ek baar, subah uthke, toilet ke baad, khaali pet weight le aur yahan likh. Target: mahine mein 1-2 kg badhna.</p>
+      <form class="logform" id="logform">
+        <label for="ldate">Date<input id="ldate" type="date" required></label>
+        <label for="lwt">Weight (kg)<input id="lwt" type="number" inputmode="decimal" step="0.1" min="30" max="150" required></label>
+        <button class="btn" type="submit">Likh</button>
+      </form>
+      <div class="loglist" id="loglist"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+/* item: [naam, quantity, kcal, protein g] — approximate values for home-cooked food */
+const I={
+  badam:['Bheege badam','10 piece',70,2.5],
+  kela:['Kela','1',105,1.3],
+  kela2:['Kela','2',210,2.6],
+  doodh:['Doodh','1 glass (250 ml)',160,8],
+  chilla:['Besan chilla','2 (60 g besan, 1 chammach tel)',270,13],
+  dahi:['Dahi','1 katori',100,5],
+  omelette:['Anda omelette / bhurji','3 ande',270,18],
+  bread:['Brown bread','2 slice',140,6],
+  roti3:['Roti','3',300,9],
+  dal:['Dal','1 katori',150,8],
+  sabzi:['Sabzi','1 katori',120,3],
+  riceHalf:['Chawal','aadhi katori',100,2],
+  salad:['Salad (kheera, tamatar, pyaaz)','1 plate',30,1],
+  chana:['Bhuna chana','50 g (ek mutthi)',185,10],
+  shakeMilk:['Doodh','300 ml',195,9.6],
+  shakeKela:['Kela','1',105,1.3],
+  pb:['Peanut butter','2 chammach',190,8],
+  oats:['Oats','30 g (3 chammach)',115,4],
+  paneer:['Paneer bhurji / sabzi','100 g paneer',310,18],
+  soya:['Soya chunks sabzi','30 g soya',130,15],
+  eggCurry:['Anda curry','2 ande',210,12],
+  chicken:['Chicken curry','150 g (5-6 piece)',300,38],
+};
+const SHAKE={time:'Gym ke baad',sub:'30 min ke andar',name:'Weight gain shake',items:['shakeMilk','shakeKela','pb','oats'],tip:'Mixer mein sab daal ke pis le. Ghar ka gainer, bazaar wale se sasta aur achha.'};
+const WAKE={time:'7:00',sub:'Uthte hi',name:'Subah',items:['badam','kela']};
+const PRE={time:'5:30',sub:'Gym se pehle',name:'Shaam ka snack',items:['kela','chana'],tip:'Gym se 45-60 minute pehle kha. Pet bhaari nahi hona chahiye.'};
+const PLANS={
+  veg:[WAKE,
+    {time:'8:30',sub:'Nashta',name:'Nashta',items:['chilla','dahi','doodh'],tip:'Chilla ki jagah 2 paneer paratha ya poha + mungfali bhi chalega.'},
+    {time:'1:00',sub:'Dopahar',name:'Lunch',items:['roti3','dal','sabzi','riceHalf','salad']},
+    PRE,SHAKE,
+    {time:'9:00',sub:'Raat',name:'Dinner',items:['roti3','paneer','soya','salad'],tip:'Paneer aur soya roz badal badal ke: ek din rajma, ek din chole, ek din soya.'}],
+  egg:[WAKE,
+    {time:'8:30',sub:'Nashta',name:'Nashta',items:['omelette','bread','doodh'],tip:'Ande poore kha, peela bhi. Usmein bhi protein aur achhi fat hai.'},
+    {time:'1:00',sub:'Dopahar',name:'Lunch',items:['roti3','dal','sabzi','riceHalf','salad']},
+    PRE,SHAKE,
+    {time:'9:00',sub:'Raat',name:'Dinner',items:['roti3','eggCurry','dal','salad']}],
+  nonveg:[WAKE,
+    {time:'8:30',sub:'Nashta',name:'Nashta',items:['omelette','bread','doodh']},
+    {time:'1:00',sub:'Dopahar',name:'Lunch',items:['roti3','chicken','riceHalf','salad'],tip:'Chicken hafte mein 3-4 din. Baaki din dal + paneer ya anda curry.'},
+    PRE,SHAKE,
+    {time:'9:00',sub:'Raat',name:'Dinner',items:['roti3','dal','sabzi','dahi']}],
+};
+const ADDONS=[['1 glass doodh',160,8],['30 g mungfali',170,7.5],['1 roti + 1 chammach ghee',145,3],['1 katori chawal',195,4],['1 kela + 1 chammach peanut butter',200,5],['2 ubla anda',150,12],['1 katori rajma / chole',210,10]];
+
+const $=id=>document.getElementById(id);
+const S={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const saved=S.get('diet:profile')||{};
+['wt','ht','age','sex'].forEach(k=>{if(saved[k]!=null)$(k).value=saved[k]});
+let type=S.get('diet:type')||'veg';
+let target={kcal:0,pro:0};
+
+function calcTarget(){
+  const w=+$('wt').value||60,h=+$('ht').value||170,a=+$('age').value||22,sex=$('sex').value;
+  const bmr=10*w+6.25*h-5*a+(sex==='m'?5:-161);
+  const kcal=Math.round((bmr*1.55+400)/50)*50;
+  const pro=Math.round(w*1.8);
+  target={kcal,pro};
+  $('tKcal').textContent=kcal.toLocaleString('en-IN');
+  $('tPro').textContent=pro;
+  $('tWater').textContent=w<65?'3':w<85?'3.5':'4';
+  S.set('diet:profile',{wt:$('wt').value,ht:$('ht').value,age:$('age').value,sex});
+}
+
+function renderPlan(){
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.type===type?'true':'false'));
+  const meals=PLANS[type]; let K=0,Pr=0,html='';
+  meals.forEach(m=>{
+    let mk=0,mp=0,rows='';
+    m.items.forEach(id=>{const [n,q,k,p]=I[id];mk+=k;mp+=p;rows+=`<tr><td>${n} <span class="q">· ${q}</span></td><td class="n">${k} kcal · ${Math.round(p)} g</td></tr>`});
+    K+=mk;Pr+=mp;
+    html+=`<article class="meal"><div class="when">${m.time}<small>${m.sub}</small></div><div class="mbody">
+      <div class="mhead"><h3>${m.name}</h3><span><b>${mk}</b> kcal · <b>${Math.round(mp)}</b> g protein</span></div>
+      <table><tbody>${rows}</tbody></table>${m.tip?`<div class="tip">${m.tip}</div>`:''}</div></article>`;
+  });
+  $('timeline').innerHTML=html;
+  Pr=Math.round(Pr);
+  const dk=target.kcal-K, dp=target.pro-Pr;
+  let v;
+  if(dk>150) v=`<b class="low">Tere target se ${dk} kcal kam hai.</b> Neeche wali list se ${dk>350?'2-3':'1-2'} cheezein roz jod de.`;
+  else if(dk<-300) v=`<b class="ok">Ye plan tere target se ${-dk} kcal zyada hai.</b> Pura na kha paaye to shake mein oats hata de ya dinner mein 1 roti kam kar.`;
+  else v=`<b class="ok">Ye plan tere target ke aas-paas hai.</b> Bas roz pura kha.`;
+  if(dp>5) v+=` Protein ${dp} g kam hai: 2 ubla anda, 1 glass doodh ya 30 g soya jod de.`;
+  $('summary').innerHTML=`
+    <div class="meter"><div class="row"><span>Calories</span><span><b>${K.toLocaleString('en-IN')}</b> / ${target.kcal.toLocaleString('en-IN')} kcal</span></div><div class="track"><div style="width:${Math.min(100,K/target.kcal*100)}%"></div></div></div>
+    <div class="meter"><div class="row"><span>Protein</span><span><b>${Pr}</b> / ${target.pro} g</span></div><div class="track"><div style="width:${Math.min(100,Pr/target.pro*100)}%"></div></div></div>
+    <div class="verdict">${v}</div>`;
+}
+
+$('addons').innerHTML=ADDONS.map(([n,k,p])=>`<span class="chip">${n} · <b>+${k}</b> kcal · ${p} g</span>`).join('');
+['wt','ht','age','sex'].forEach(k=>$(k).addEventListener('input',()=>{calcTarget();renderPlan()}));
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{type=b.dataset.type;S.set('diet:type',type);renderPlan()}));
+
+/* weight diary */
+let log=S.get('diet:log')||[];
+const today=new Date(); $('ldate').value=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+function renderLog(){
+  log.sort((a,b)=>a.d<b.d?-1:1);
+  if(!log.length){$('loglist').innerHTML='<div><span style="color:var(--muted)">Abhi koi entry nahi. Pehla weight upar likh.</span></div>';return}
+  const first=log[0].w;
+  $('loglist').innerHTML=log.slice().reverse().map((e,i,arr)=>{
+    const prev=arr[i+1], ch=prev?(e.w-prev.w):null;
+    const cs=ch==null?'':`<span class="${ch>=0?'up':'down'}">${ch>=0?'+':''}${ch.toFixed(1)} kg</span>`;
+    const dt=new Date(e.d+'T00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+    return `<div><span>${dt}</span><span><b>${e.w.toFixed(1)} kg</b> ${cs}<button class="x" type="button" data-d="${e.d}" aria-label="${dt} wali entry hatao">✕</button></span></div>`;
+  }).join('')+(log.length>1?`<div><span>Shuru se ab tak</span><span class="${log[log.length-1].w-first>=0?'up':'down'}">${(log[log.length-1].w-first>=0?'+':'')+(log[log.length-1].w-first).toFixed(1)} kg</span></div>`:'');
+  document.querySelectorAll('.x').forEach(b=>b.addEventListener('click',()=>{log=log.filter(e=>e.d!==b.dataset.d);S.set('diet:log',log);renderLog()}));
+}
+$('logform').addEventListener('submit',e=>{
+  e.preventDefault(); const d=$('ldate').value,w=parseFloat($('lwt').value); if(!d||!w)return;
+  log=log.filter(x=>x.d!==d); log.push({d,w}); S.set('diet:log',log); $('lwt').value=''; renderLog();
+});
+
+calcTarget(); renderPlan(); renderLog();
+})();
+</script>
+</body>
+</html>
