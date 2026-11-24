@@ -128,11 +128,12 @@ a.yt:hover{text-decoration:underline}
   <header class="top">
     <nav class="switch" aria-label="Page"><a href="index.html" aria-current="page">Workout</a><a href="diet.html">Diet</a></nav>
     <h1>Society Gym Plan</h1>
-    <p class="sub">Weight aur muscle gain ke liye 6 din ka plan, Ravivar ko chhutti. Din chun, figure dekh, set karte jaa aur tick karta jaa.</p>
+    <p class="sub">Muscle gain aur six pack ke liye 6 din ka plan, Ravivar ko chhutti. Din chun, figure dekh, set karte jaa aur tick karta jaa.</p>
     <div class="legend">
       <span><i class="dot" style="background:var(--push)"></i>Push: Chest, Shoulder, Tricep</span>
       <span><i class="dot" style="background:var(--pull)"></i>Pull: Back, Bicep</span>
       <span><i class="dot" style="background:var(--legs)"></i>Legs + Abs</span>
+      <span>Abs hafte mein 3 baar: Budh, Shukra, Shani</span>
     </div>
   </header>
 
@@ -147,6 +148,8 @@ a.yt:hover{text-decoration:underline}
         <li>Pehle 2 hafte halka weight, sirf sahi tarika.</li>
         <li>Saare sets mein upar wale reps (jaise 3 × 12) aaram se ho gaye, to agli baar thoda weight badha.</li>
         <li>Har set ke last 1-2 reps mushkil lagne chahiye, form kharab nahi.</li>
+        <li>Diary mein har exercise ka weight aur reps likh. Har hafte thoda zyada karne ki koshish kar.</li>
+        <li>Pehli badi exercise ke 4 set hain, baaki ke 3.</li>
       </ul>
     </div>
     <div class="rule">
@@ -165,6 +168,16 @@ a.yt:hover{text-decoration:underline}
         <li>Joint mein tez dard ho to wo exercise turant rok.</li>
         <li>Body bahut thaki ho to ek din chhutti le le.</li>
         <li>Target: mahine mein 1-2 kg weight badhna.</li>
+        <li>Har 8-10 hafte mein ek hafta halka: aadhe sets, same weight.</li>
+      </ul>
+    </div>
+    <div class="rule">
+      <h4>Six pack kaise dikhega</h4>
+      <ul>
+        <li>Abs sabke hote hain. Dikhte tab hain jab pet ki charbi kam ho (lagbhag 10-12% body fat).</li>
+        <li>Abs ko bhi baaki muscle jaisa train kar: 10-15 reps, aasaan lage to weight pakad ke kar.</li>
+        <li>Roz 100 crunch se pet ki charbi nahi jaati. Charbi khaane se jaati hai.</li>
+        <li>Pehle 4-6 mahine bulk kar ke muscle bana. Phir 8-12 hafte roz ~400 kcal kam kha (cut), protein utna hi, weight wahi uthata reh. Tab abs dikhenge.</li>
       </ul>
     </div>
   </section>
@@ -262,6 +275,7 @@ const PROPS={
   benchUp: R(84,122,52,8)+R(98,62,24,62,'eq',4)+LN(90,130,90,FLOOR)+LN(130,130,130,FLOOR),
   benchEdge: R(70,128,80,7)+LN(80,135,80,FLOOR)+LN(140,135,140,FLOOR),
   pec: R(84,122,52,8)+R(98,58,24,66,'eq',4)+LN(110,130,110,FLOOR),
+  mat: R(20,151,190,6,'eq',3),
 };
 
 /* ---------- exercises ---------- */
@@ -394,19 +408,35 @@ const EX={
    base:{th:-30,sn:40},A:{t:166,ua:-40,fa:175},B:{t:210,ua:5,fa:210},
    steps:['Pair pad mein fasa, haath chest pe cross.','Sirf kandhe aur upar ki peeth utha.','Upar pet daba, 1 second.','Dheere wapas, poora mat let.'],
    galti:'Gardan haath se mat kheench.'},
+ plank:{name:'Plank',where:'Zameen pe mat bichha ke',yt:'forearm plank',
+   view:'side',anchor:'hip',at:[100,136],props:PROPS.mat,
+   base:{t:188,ua:90,fa:180,th:10,sn:10,ft:60},A:{},B:{},
+   steps:['Kohni kandhe ke theek neeche, forearm zameen pe.','Pair peeche seedhe, panjon pe.','Sir se edi tak body ek seedhi line mein.','Pet andar kheench ke tight rakh aur saans leta reh.'],
+   galti:'Kamar neeche mat latka, hips upar mat utha.'},
+ legRaise:{name:'Lying Leg Raise',where:'Zameen pe mat ya flat bench',yt:'lying leg raise',
+   view:'side',anchor:'hip',at:[128,148],props:PROPS.mat,
+   base:{t:180,ua:3,fa:3},A:{th:-3,sn:-3,ft:-90},B:{th:-85,sn:-85,ft:-175},
+   steps:['Peeth ke bal let ja, haath hips ke neeche ya side mein.','Dono pair seedhe saath mein rakh.','Pair upar utha jab tak seedhe khade ho jaayein.','Dheere neeche la, zameen chhoone se pehle ruk.'],
+   galti:'Kamar zameen se mat utha, pair jhatke se mat gira.'},
+ cableCrunch:{name:'Cable Crunch',where:'Multi-gym, upar wala cable + rassi, ghutno pe baith ke',yt:'kneeling cable crunch',
+   view:'side',anchor:'hip',at:[78,125],props:PROPS.pushdown,cable:[150,10],hand:'handle',
+   base:{th:90,sn:180,ft:180},A:{t:-80,ua:-25,fa:-155},B:{t:10,ua:40,fa:-110},
+   steps:['Cable ke saamne ghutno pe baith, rassi sir ke dono side pakad.','Hips ek jagah rakh, hilne nahi chahiye.','Pet daba ke chest ghutno ki taraf neeche la.','1 second ruk, dheere wapas upar.'],
+   galti:'Haath se mat kheench, hips aage-peeche mat hila. Kaam sirf pet ka hai.'},
 };
 
 const W='5-7 minute cycle ya elliptical, phir pehli exercise ka ek halka set. Do sets ke beech 1.5-2 minute aaram.';
 const DAYS=[
- {key:'som',short:'Som',full:'Somvar',type:'push',label:'Push 1',items:[['chestPress','3 × 10-12'],['inclinePress','3 × 10-12'],['dbShoulder','3 × 10-12'],['lateral','3 × 12-15'],['pushdown','3 × 12']]},
- {key:'mangal',short:'Mangal',full:'Mangalvar',type:'pull',label:'Pull 1',items:[['latPulldown','3 × 10-12'],['cableRow','3 × 10-12'],['dbRow','3 × 10 har haath'],['shrug','3 × 12-15'],['curl','3 × 12']]},
- {key:'budh',short:'Budh',full:'Budhvar',type:'legs',label:'Legs 1',items:[['legPress','3 × 10-12'],['rdl','3 × 10-12'],['legExt','3 × 12-15'],['calf','3 × 15'],['kneeRaise','3 × 10-15']]},
- {key:'guru',short:'Guru',full:'Guruvar',type:'push',label:'Push 2',items:[['flatPress','3 × 10-12'],['pecDeck','3 × 12'],['arnold','3 × 10-12'],['lateral','3 × 12-15'],['overheadExt','3 × 12']]},
- {key:'shukra',short:'Shukra',full:'Shukravar',type:'pull',label:'Pull 2',items:[['closePulldown','3 × 10-12'],['dbRow','3 × 10 har haath'],['cableRow','3 × 12'],['rearDelt','3 × 12-15'],['hammer','3 × 12']]},
- {key:'shani',short:'Shani',full:'Shanivar',type:'legs',label:'Legs 2',items:[['goblet','3 × 10-12'],['lunge','3 × 10 har pair'],['legPress','3 × 12','Is din pair plate pe thode upar rakh, hips aur hamstring pe zyada kaam aayega.'],['legCurl','3 × 12','Agar ye machine nahi hai to iski jagah Romanian Deadlift ke 3 set kar.'],['crunch','3 × 15']]},
+ {key:'som',short:'Som',full:'Somvar',type:'push',label:'Push 1',items:[['chestPress','4 × 8-12'],['inclinePress','3 × 10-12'],['dbShoulder','3 × 10-12'],['lateral','3 × 12-15'],['pushdown','3 × 12']]},
+ {key:'mangal',short:'Mangal',full:'Mangalvar',type:'pull',label:'Pull 1',items:[['latPulldown','4 × 8-12'],['cableRow','3 × 10-12'],['dbRow','3 × 10 har haath'],['shrug','3 × 12-15'],['curl','3 × 12']]},
+ {key:'budh',short:'Budh',full:'Budhvar',type:'legs',label:'Legs 1',items:[['legPress','4 × 8-12'],['rdl','3 × 10-12'],['legExt','3 × 12-15'],['calf','3 × 15'],['kneeRaise','3 × 10-15'],['plank','3 × 30-60 sec']]},
+ {key:'guru',short:'Guru',full:'Guruvar',type:'push',label:'Push 2',items:[['flatPress','4 × 8-12'],['pecDeck','3 × 12'],['arnold','3 × 10-12'],['lateral','3 × 12-15'],['overheadExt','3 × 12']]},
+ {key:'shukra',short:'Shukra',full:'Shukravar',type:'pull',label:'Pull 2',muscle:'Back, Bicep + Abs',items:[['closePulldown','4 × 8-12'],['dbRow','3 × 10 har haath'],['cableRow','3 × 12'],['rearDelt','3 × 12-15'],['hammer','3 × 12'],['cableCrunch','3 × 12-15'],['legRaise','3 × 10-15']]},
+ {key:'shani',short:'Shani',full:'Shanivar',type:'legs',label:'Legs 2',items:[['goblet','4 × 8-12'],['lunge','3 × 10 har pair'],['legPress','3 × 12','Is din pair plate pe thode upar rakh, hips aur hamstring pe zyada kaam aayega.'],['legCurl','3 × 12','Agar ye machine nahi hai to iski jagah Romanian Deadlift ke 3 set kar.'],['crunch','3 × 15'],['legRaise','3 × 10-15']]},
  {key:'ravi',short:'Ravi',full:'Ravivar',type:'rest',label:'Rest',items:[]},
 ];
 const TYPEVAR={push:'--push',pull:'--pull',legs:'--legs',rest:'--rest'};
+const nSets=sr=>parseInt(sr,10)||3;
 const MUSCLE={push:'Chest, Shoulder, Tricep',pull:'Back, Bicep',legs:'Pair + Abs',rest:'Chhutti'};
 
 const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -440,7 +470,7 @@ function show(i){
     return;
   }
   const done=store.get(setsKey(d))||{};
-  let html=`<div class="dayhead"><div><h2>${d.full} · <span>${d.label}</span></h2><p>${MUSCLE[d.type]}</p></div>
+  let html=`<div class="dayhead"><div><h2>${d.full} · <span>${d.label}</span></h2><p>${d.muscle||MUSCLE[d.type]}</p></div>
     <div class="progress" id="prog"></div></div><div class="bar"><div id="progbar"></div></div>
     <div class="warm"><b>Pehle warm-up:</b> ${W}</div><div class="list">`;
   d.items.forEach(([id,sr,note],n)=>{
@@ -459,7 +489,7 @@ function show(i){
         <ol class="steps">${ex.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
         <div class="galti"><b>Galti mat kar:</b> ${ex.galti}</div>
         <div class="actions">
-          <div class="sets"><span>Sets</span>${[0,1,2].map(k=>`<button type="button" class="set${ds[k]?' done':''}" data-ex="${n}" data-set="${k}" aria-pressed="${ds[k]?'true':'false'}" aria-label="Set ${k+1}">${ds[k]?'✓':k+1}</button>`).join('')}</div>
+          <div class="sets"><span>Sets</span>${Array.from({length:nSets(sr)},(_,k)=>k).map(k=>`<button type="button" class="set${ds[k]?' done':''}" data-ex="${n}" data-set="${k}" aria-pressed="${ds[k]?'true':'false'}" aria-label="Set ${k+1}">${ds[k]?'✓':k+1}</button>`).join('')}</div>
           <a class="yt" href="${yt}" target="_blank" rel="noopener">▶ YouTube pe video dekh</a>
         </div>
       </div></article>`;
@@ -485,7 +515,7 @@ function show(i){
   updateProg(d);
 }
 function updateProg(d){
-  const st=store.get(setsKey(d))||{}; let c=0; const total=d.items.length*3;
+  const st=store.get(setsKey(d))||{}; let c=0; const total=d.items.reduce((a,it)=>a+nSets(it[1]),0);
   panel.querySelectorAll('.set.done').forEach(()=>c++);
   document.getElementById('prog').innerHTML=`${c}/${total}<small>sets</small>`;
   document.getElementById('progbar').style.width=(c/total*100)+'%';
